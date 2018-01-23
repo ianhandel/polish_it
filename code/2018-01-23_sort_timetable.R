@@ -10,7 +10,7 @@ library(here)
 days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 starts <- tibble(Weeks = glue("Sem2 wk{1:10}"),
-                 date = seq(ymd("20180115"), length.out = 10, by = 7))
+                 date = seq(ymd("20180114"), length.out = 10, by = 7))
 
 header <- "Activity\tDescription\tType\tStart\tEnd\tWeeks\tBuilding\tRoom\tStaff" 
 header_vec <- names(read.delim(text = header))
@@ -30,8 +30,9 @@ ttable <- bind_cols(days_col, other_cols) %>%
   inner_join(starts, by = c("Weeks" = "Weeks")) %>% 
   mutate(start_date = date + days(day_number)) %>% 
   arrange(as.numeric(date), as.numeric(start_date)) %>% 
-  mutate(nice_date = format(start_date, "%a %d %m %Y")) %>% 
-  select(start_date, Start, End, Activity, Type, Building, Room, Staff)
+  mutate(nice_date = format(start_date, "%d %B %Y"),
+         nice_day = format(start_date, "A")) %>% 
+  select(nice_day, nice_date, Start, End, Activity, Type, Building, Room, Staff)
 
 write_csv(ttable, "my_timetable.csv")
 
