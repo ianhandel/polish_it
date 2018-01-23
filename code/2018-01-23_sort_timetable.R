@@ -31,7 +31,7 @@ ttable <- bind_cols(days_col, other_cols) %>%
   mutate(start_date = date + days(day_number)) %>% 
   arrange(as.numeric(date), as.numeric(start_date)) %>% 
   mutate(nice_date = format(start_date, "%d %B %Y"),
-         nice_day = format(start_date, "A")) %>% 
+         nice_day = format(start_date, "%A")) %>% 
   select(nice_day, nice_date, Start, End, Activity, Type, Building, Room, Staff)
 
 write_csv(ttable, "my_timetable.csv")
