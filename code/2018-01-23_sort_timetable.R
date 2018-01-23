@@ -28,10 +28,10 @@ other_cols <- read.delim(text = raw, header = FALSE) %>% set_names(header_vec)
 ttable <- bind_cols(days_col, other_cols) %>% 
   filter(!Activity %in% days) %>%
   inner_join(starts, by = c("Weeks" = "Weeks")) %>% 
-  mutate(start = date + days(day_number)) %>% 
-  arrange(as.numeric(date), as.numeric(start)) %>% 
-  mutate(nice_date = format(start, "%a %d %M %Y")) %>% 
-  select(nice_date, Start, End, Activity, Type, Building, Room, Staff)
+  mutate(start_date = date + days(day_number)) %>% 
+  arrange(as.numeric(date), as.numeric(start_date)) %>% 
+  mutate(nice_date = format(start_date, "%a %d %m %Y")) %>% 
+  select(start_date, Start, End, Activity, Type, Building, Room, Staff)
 
-write.csv(ttable, "my_timetable.csv")
+write_csv(ttable, "my_timetable.csv")
 
