@@ -2,28 +2,36 @@
 
 
 library(tidyverse)
+library(glue)
+library(lubridate)
 library(here)
 
+
 days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+starts <- tibble(Weeks = glue("Sem2 wk{1:10}"),
+                 date = seq(ymd("20180115"), length.out = 10, by = 7))
 
 header <- "Activity\tDescription\tType\tStart\tEnd\tWeeks\tBuilding\tRoom\tStaff" 
 header_vec <- names(read.delim(text = header))
 
-raw <- read_lines(here("data/2018-01-23_timetable_raw")) %>% 
+raw <- read_lines(here::here("data/2018-01-23_timetable_raw")) %>% 
   keep(~ .x != "") %>% 
   keep(~ !str_detect(.x, "^Weeks")) %>% 
   keep(~ .x != header) %>% 
   "["(-1)
 
-# create an empty dataframe with headers
-header_vec <- c(header_vec, "day")
-ttable <- do.call(data.frame, as.list(header_vec) %>% set_names())[-1,] %>% as_tibble()
-for(ii in seq_along(raw)){
-  if(raw[[ii]] %in% days) {
-    # ttable$day[[ii]] <- raw[ii]
-  } else {
-    cells <- str_split(raw[ii], "\t")[[1]]
-      print(cells)
-    ttable[ii, ] <- c(cells, NA)
-  }
-}
+days_col <- match(raw, days) %>% tidyr:::fillDown() %>% tibble() %>% set_names("day_number")
+
+other_cols <- read.delim(text = raw, header = FALSE) %>% set_names(header_vec)
+
+ttable <- bind_cols(days_col, other_cols) %>% 
+  filter(!Activity %in% days) %>%
+  inner_join(starts, by = c("Weeks" = "Weeks")) %>% 
+  mutate(start = date + days(day_number)) %>% 
+  arrange(as.numeric(date), as.numeric(start)) %>% 
+  mutate(nice_date = format(start, "%a %d %M %Y")) %>% 
+  select(nice_date, Start, End, Activity, Type, Building, Room, Staff)
+
+write.csv(ttable, "my_timetable.csv")
+
