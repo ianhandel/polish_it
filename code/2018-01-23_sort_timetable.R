@@ -9,13 +9,16 @@ library(here)
 
 days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
-starts <- tibble(Weeks = glue("Sem2 wk{1:10}"),
-                 date = seq(ymd("20180114"), length.out = 10, by = 7))
+
+starts <- read_lines(here::here("data/week_lookup")) %>% 
+  str_split("\tw/c ") %>%
+  map_df(~ tibble(Weeks = .x[[1]], date = dmy(.x[[2]])))
+
 
 header <- "Activity\tDescription\tType\tStart\tEnd\tWeeks\tBuilding\tRoom\tStaff" 
 header_vec <- names(read.delim(text = header))
 
-raw <- read_lines(here::here("data/2018-01-23_timetable_raw")) %>% 
+raw <- read_lines(here::here("data/2018_01-23_rw_raw")) %>% 
   keep(~ .x != "") %>% 
   keep(~ !str_detect(.x, "^Weeks")) %>% 
   keep(~ .x != header) %>% 
@@ -28,7 +31,7 @@ other_cols <- read.delim(text = raw, header = FALSE) %>% set_names(header_vec)
 ttable <- bind_cols(days_col, other_cols) %>% 
   filter(!Activity %in% days) %>%
   inner_join(starts, by = c("Weeks" = "Weeks")) %>% 
-  mutate(start_date = date + days(day_number)) %>% 
+  mutate(start_date = date + days(day_number) - 1) %>% 
   arrange(as.numeric(date), as.numeric(start_date)) %>% 
   mutate(nice_date = format(start_date, "%d %B %Y"),
          nice_day = format(start_date, "%A")) %>% 
